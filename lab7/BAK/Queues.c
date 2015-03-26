@@ -26,7 +26,6 @@ byte Q_putc(byte qid, char data){
 
     if(point->flags&(1<<Q_EMPTY)) point->flags &= ~(1<<Q_EMPTY);
     if(point->in==point->out) point->flags|=(1<<Q_FULL);
-	return 1;
 }
 
 byte Q_getc(byte qid, char *pdata ){
@@ -42,12 +41,10 @@ byte Q_getc(byte qid, char *pdata ){
 
     if(point->flags&(1<<Q_FULL)) point->flags &= ~(1<<Q_FULL);
     if(point->in==point->out) point->flags|=(1<<Q_EMPTY);
-	return 1;
 }
 
 int8_t Q_create(int qsize, char * pbuffer){
     int i,j;
-	if(!(qsize&(qsize-1))) return -1;
     for(i=0;i<QCB_MAX_COUNT;i++) if(qcb[i].pQ==NULL){
         qcb[i].pQ = pbuffer;
         qcb[i].in = 0;

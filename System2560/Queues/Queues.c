@@ -3,8 +3,6 @@
  * Author: Blake Carpenter, Spencer Allen, Benjamin Adams
  * Version: 1.0
  *
- * Current Version Notes:
- *  For putc and getc, need to implement circular queue functionality, use smask.
  */
 
 #include <stdlib.h>
@@ -50,6 +48,7 @@ byte Q_getc(byte qid, char *pdata ){
 }
 
 int8_t Q_create(int qsize, char * pbuffer){
+	if(!(qsize&(qsize-1))) return -1;
     int i;
     for(i=0;i<QCB_MAX_COUNT;i++) if(qcb[i].pQ==NULL){
         QCB temp = qcb[i];
