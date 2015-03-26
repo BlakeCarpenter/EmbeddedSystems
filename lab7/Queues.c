@@ -47,7 +47,7 @@ byte Q_getc(byte qid, char *pdata ){
 
 int8_t Q_create(int qsize, char * pbuffer){
     int i,j;
-	if(!(qsize&(qsize-1))) return -1;
+	if(qsize&(qsize-1)) return -1;
     for(i=0;i<QCB_MAX_COUNT;i++) if(qcb[i].pQ==NULL){
         qcb[i].pQ = pbuffer;
         qcb[i].in = 0;
