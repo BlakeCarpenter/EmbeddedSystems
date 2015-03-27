@@ -1,60 +1,55 @@
 /*
  * Queues.C
  * Author: Blake Carpenter, Spencer Allen, Benjamin Adams
- * Version: 1.0
- *
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 #include "Queues.h"
 #include "System.h"
 
-QCB qcb[QCB_MAX_COUNT];
-
-void main(){
-	return 0;
-}
-
 byte Q_putc(byte qid, char data){
-    if(qid >= QCB_MAX_COUNT || qid < 0)return -1;
-    QCB *Q_pointer = &qcb[qid];
-    if(Q_pointer->flags == Q_FULL) return 0;
-    
-    //Else the queue is at any other state, so put the char
-    *(Q_pointer->pQ+Q_pointer->in) = data;
-    Q_pointer->in++;
+    if(!qcb[qid].pQ) return -1; //Queue doesn't exist
+    QCB *point = &qcb[qid];
+    if(point->in==point->out && (point->flags&(1<<Q_FULL))) return -1; //Queue is full
 
-    //Check to see if the queue is now full
-    if(Q_pointer->in == Q_pointer->out && Q_pointer->available)
-        Q_pointer->flags = Q_FULL;
-    return 1;
+    *(point->pQ+point->in) = data;
+    point->available++;
+    point->in++;
+    point->in &= point->smask;
+
+    if(point->flags&(1<<Q_EMPTY)) point->flags &= ~(1<<Q_EMPTY);
+    if(point->in==point->out) point->flags|=(1<<Q_FULL);
+	return 1;
 }
 
 byte Q_getc(byte qid, char *pdata ){
-    if(qid >= QCB_MAX_COUNT || qid < 0) return -1;
-    QCB *Q_pointer = &qcb[qid];
-    if(Q_pointer->available){
-        *pdata = (Q_pointer->pQ+Q_pointer->out);
-        *(Q_pointer->pQ+Q_pointer->out) = NULL;
-        Q_pointer->out++;
-        Q_pointer->available--;
+    if(!qcb[qid].pQ) return -1; //Queue doesn't exist
+    QCB *point = &qcb[qid];
+    if(point->in==point->out && (point->flags&(1<<Q_EMPTY))) return -1; //Queue is empty
 
-        //Check if empty to set flag
-        if(Q_pointer->available==0)
-            Q_pointer->flags = Q_EMPTY;
-        return 1;
-    }
-    else return 0;
+    *pdata = *(point->pQ+point->out);
+    *(point->pQ+point->out) = 0;
+    point->available--;
+    point->out++;
+    point->out &= point->smask;
+
+    if(point->flags&(1<<Q_FULL)) point->flags &= ~(1<<Q_FULL);
+    if(point->in==point->out) point->flags|=(1<<Q_EMPTY);
+	return 1;
 }
 
 int8_t Q_create(int qsize, char * pbuffer){
-	if(!(qsize&(qsize-1))) return -1;
-    int i;
+    int i,j;
+	if(qsize&(qsize-1)) return -1;
     for(i=0;i<QCB_MAX_COUNT;i++) if(qcb[i].pQ==NULL){
-        QCB temp = qcb[i];
-        temp.smask=qsize-1;
-        temp.available=qsize;
-        temp.pQ=pbuffer;
+        qcb[i].pQ = pbuffer;
+        qcb[i].in = 0;
+        qcb[i].out = 0;
+        qcb[i].smask = 31;
+        qcb[i].flags |= (1<<Q_EMPTY);
+        qcb[i].available = 32;
+        for(j=0; j<qsize; j++) *(qcb[i].pQ+j) = 0;
         return i;
     }
     return -1;
@@ -65,11 +60,11 @@ void Q_delete(byte qid){
 }
 
 int Q_used(byte qid){
-    if(qid >= QCB_MAX_COUNT || qid < 0) return -1;
-    return 64-qcb[qid].available;
+	if(qid >= QCB_MAX_COUNT || qid < 0) return -1;
+	return qcb[qid].available;
 }
 
 int Q_unused(byte qid){
     if(qid >= QCB_MAX_COUNT || qid < 0) return -1;
-    return qcb[qid].available;
+    return 32-qcb[qid].available;
 }

@@ -16,7 +16,7 @@
 //
 // Queue Control Block
 //
-#define       QCB_MAX_COUNT   4   // defines maximum number of system queues.
+#define       QCB_MAX_COUNT   8   // defines maximum number of system queues.
 
 #define       Q_FULL  0           // bit position of FULL status bit in QCB flags byte
 #define       Q_EMPTY 1           // bit position of EMPTY status bit in QCB flags byte
@@ -50,5 +50,8 @@ void Q_delete(byte);
 int Q_used(byte);
 int Q_unused(byte);
 int Q_isempty(byte);
+
+
+QCB qcb[QCB_MAX_COUNT];
 
 #endif /* QUEUES_H_ */
