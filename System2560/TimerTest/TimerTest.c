@@ -2,7 +2,7 @@
  * TimerTest.c
  *
  * Created: 3/30/2015 10:37:04 PM
- *  Author: Blake
+ *  Author: Blake Carpenter, Spencer Allen, Benjamin Adams
  */ 
 
 #include <avr/io.h>
@@ -82,50 +82,77 @@ int digitalRead(int pNo);
 void digitalWrite(int pNo, int value);
 int ledState;
 
-int main(void)
-{
+int main(void){
 	
-	OCR1A = 0; //50 ms
+	pinMode(13,OUTPUT);
+	ledState = HIGH;
+	digitalWrite(13,HIGH);
+	
+	#ifndef PART_A
+	#define PART_A
+	OCR1A = 12500; //50 ms
 	TIMSK1 |= (1<<OCIE1A); //Enable Timer match interrupts
-	//Set to NORMAL
-	TCCR1A |= ((1<<WGM11)|(1<<WGM10));
-	TCCR1B |= ((1<<WGM13)|(1<<WGM12));
+	TCCR1A = 0;
+	TCCR1B = 3;//start timer
+	#endif
 	
+	#ifndef PART_B
+	#define PART_B
+	ICR1 = 50000;
+	OCR1A = 12500;
+	TIMSK1 |= (1<<OCIE1A);
+	TCCR1A = 0;
+	TCCR1B = 27;//start timer
+	#endif
+	
+	#ifndef PART_C
+	#define PART_C
+	ICR1 = 50000;
+	OCR1C = 18750;
+	TIMSK1 |= (1<<OCIE1C);
+	TCCR1A = 8;
+	TCCR1B = 19;//start timer
+	#endif
+	
+	PART_C
 	
 	sei();//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	while(1){
+	while(1){}
 		
-	}
-
-/*CTC idea
-	CTC returns to zero at TOP. Set TOP to 200ms in ICR1, place 50ms in comp register
-	(OCR1A). Setup interrupt for OCR1A match to turn off LED. Setup interrupt for TOVn
-	to turn LED on.
-*/
+}
 
 /*PWN idea
 	PWN mode bounces from 0 to TOP to 0. Half increments? i.e., 25,75, so that you can
-	use one value as the trigger.
+	use one value as the trigger. Addendum: Set PWN register to 75, it comes with modes
+	(check datasheet) to catch the number while counting up and down.
 */
 
-}
-
+/*ISR FOR PART_A
 ISR(TIMER1_COMPA_vect){
-	if(){ // countdown from 0xFFFF #TOVn flag is set 
-		//negate 50ms and 150ms time interval int 
-	} else{
-		// 50ms time interval int
-		//150ms time interval int
+	if(ledState==HIGH){
+		digitalWrite(13,LOW);
+		OCR1A += 37500;
+		ledState = LOW;
 	}
-	if(){ // 50ms time interval int
-		//add 150ms 
+	else{
+		digitalWrite(13,HIGH);
+		OCR1A += 12500;
+		ledState= HIGH;
 	}
-	else if(){ //150ms time interval int
-		
-		//add 150ms time interval int 
+}*/
+
+/*ISR FOR PART B
+ISR(TIMER1_COMPA_vect){
+	if(ledState == HIGH){
+		digitalWrite(13,LOW);
+		ledState = LOW;
 	}
-	
+	else{
+		digitalWrite(13,HIGH);
+		ledState = HIGH;
+	}
 }
+ISR_ALIAS(TIMER1_OVF_vect, TIMER1_COMPA_vect);*/
 
 //DIGITAL CODE
 int pinMode(int pNo, int type){
