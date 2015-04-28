@@ -6,9 +6,12 @@
  */ 
 
 
+#include <stdlib.h>
+#include <string.h>
 #include <avr/io.h>
-#include <util/delay.h>
 #include <avr/interrupt.h>
+
+#include <util/delay.h>
 
 //Digital declarations and defines
 struct pinMap {
@@ -89,37 +92,43 @@ static char *pData;
 
 #define DHT_PIN 6
 uint8_t receive_buffer[41];
-int receiving;
 
 int main(void){
 	serial_open(19200, 0);
 	sei();
 	int humidity;
 	int temperature;
+	char humidityStringBuffer[5];
+	char temperatureStringBuffer[5];
+	char ilb[45];
+	
+	for(int i = 0; i < 45; i++) ilb[i] = 0;
 	
 	for(int i = 0; i < 5; i++){
 		receive_buffer[i] = 0;
+		humidityStringBuffer[i] = 0;
+		temperatureStringBuffer[i] = 0;
 	}
 	while(1){
 		_delay_ms(1000);
-        pinMode(6,OUTPUT);
-		digitalWrite(6, LOW);
+        pinMode(DHT_PIN,OUTPUT);
+		digitalWrite(DHT_PIN, LOW);
 		_delay_ms(5);
-		pinMode(6,INPUT_PULLUP);
-		while(digitalRead(6)==HIGH){}
+		pinMode(DHT_PIN,INPUT_PULLUP);
+		while(digitalRead(DHT_PIN)==HIGH){}
 		_delay_us(160);
 		for(int i = 0; i < 40; i++){
-			while(digitalRead(6)==LOW){}
+			while(digitalRead(DHT_PIN)==LOW){}
 			_delay_us(40);
-			if(digitalRead(6)==HIGH) receive_buffer[i] = HIGH;
+			if(digitalRead(DHT_PIN)==HIGH) receive_buffer[i] = HIGH;
 			else receive_buffer[i] = LOW;
 			_delay_us(30);
 		}
-		serial_print("\n");
+		/*serial_print("\n");
 		for(int i = 0; i < 40; i++){
 			if(receive_buffer[i]) serial_write('1');
 			else serial_write('0');
-		}
+		}*/
 		humidity = 0;
 		temperature = 0;
 		for(int i = 0; i < 16; i++){
@@ -130,10 +139,26 @@ int main(void){
 			temperature <<= 1;
 			temperature |= receive_buffer[i];
 		}
-		/*serial_write('h');
-		serial_write(humidity);
-		serial_write('t');
-		serial_write(temperature);*/
+		
+		humidity *= .1;
+		temperature *= .1;
+		
+		itoa(humidity,humidityStringBuffer,10);
+		itoa(temperature,temperatureStringBuffer,10);
+		
+		//strcpy(ilb, "Humidity: ");
+		strcpy(ilb, humidityStringBuffer);
+		//strcpy(ilb, ", Temperature: ");
+		strcpy(ilb, temperatureStringBuffer);
+		strcpy(ilb, "\n");
+		
+		for(int i = 0; i < 45; i++) serial_write(ilb[i]);
+		
+		/*serial_print("Humidity: ");
+		//serial_print(humidityStringBuffer);
+		serial_print(", Temperature: ");
+		//serial_print(temperatureStringBuffer);
+		serial_print("\n");*/
     }
 	return 1;
 }
