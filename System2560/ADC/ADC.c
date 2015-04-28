@@ -2,7 +2,7 @@
  * ADC.c
  *
  * Created: 4/27/2015 6:42:09 PM
- *  Author: Spencer Allen, Blake Carpenter, Jonathan Tye
+ *  Author: Benjamin Adams, Spencer Allen, Blake Carpenter, Jonathan Tye
  */ 
 
 
@@ -25,8 +25,7 @@ int main(void){
 	
 	serial_open(19200, 0);
 	
-	//OCR0A = 12500; //50 ms
-	OCR0A = 5000; //50 ms
+	OCR0A = 5000; //20 ms
 	TIMSK0 |= (1<<OCIE0A); //Enable Timer match interrupts
 	TCCR0A = 0;
 	TCCR0B = 3;//start timer
@@ -34,17 +33,15 @@ int main(void){
 	ADMUX &= ~0x1F;
 	ADMUX |= 0; //Set channel
 	ADMUX |= (1<<REFS0);
-	ADCSRA |= (1<<ADEN);
-	ADCSRA |= (1<<ADIE);
-	ADCSRA |= (1<<ADATE);
-	ADCSRB = 3;
+	ADCSRA |= (1<<ADEN);//Enable ADC conversion
+	ADCSRA |= (1<<ADIE);//Enable ADC conversion interrupts
+	ADCSRA |= (1<<ADATE);//Auto-triggering interrupts
+	ADCSRB = 3;//Set auto-trigger to fire interrupt on Timer0 match
 	
 	sei();
 	
-    while(1){
-		
-		//serial_write(serial_read());
-    }
+    while(1){}//Run Program
+	
 }
 
 int ADC_read(uint8_t channel, uint8_t resolution, bool singleEnded){
@@ -74,20 +71,6 @@ void ADC_print(uint16_t t){
 }
 
 ISR(TIMER0_COMPA_vect){
-	/*if(timesPolled >= 5){
-		ADCSRA &= ~(1<<ADEN);
-		ADC_print(total);
-	}
-	else{
-		OCR0A += 60000;
-		ADCSRA |= (1<<ADEN);
-		ADCSRA |= (1<<ADSC);
-	}
-	if(timesPolled >= 5){
-		ADCSRA &= ~(1<<ADEN);
-		ADC_print(total);
-	}*/
-	//OCR0A = 12500; //50 ms
 	OCR0A += 5000;
 }
 
@@ -104,6 +87,5 @@ ISR(ADC_vect){
 		temp = (hi | low);
 		total += temp;
 		timesPolled++;
-		
 	}
 }
