@@ -88,22 +88,22 @@ int main(void){
 	ledState = HIGH;
 	digitalWrite(13,HIGH);
 	
-	#ifndef PART_A
+	/*#ifndef PART_A
 	#define PART_A
 	OCR1A = 12500; //50 ms
 	TIMSK1 |= (1<<OCIE1A); //Enable Timer match interrupts
 	TCCR1A = 0;
 	TCCR1B = 3;//start timer
-	#endif
+	#endif*/
 	
-	#ifndef PART_B
+	/*#ifndef PART_B
 	#define PART_B
 	ICR1 = 50000;
 	OCR1A = 12500;
 	TIMSK1 |= (1<<OCIE1A);
 	TCCR1A = 0;
 	TCCR1B = 27;//start timer
-	#endif
+	#endif*/
 	
 	#ifndef PART_C
 	#define PART_C
@@ -127,7 +127,7 @@ int main(void){
 	(check datasheet) to catch the number while counting up and down.
 */
 
-/*ISR FOR PART_A
+/*
 ISR(TIMER1_COMPA_vect){
 	if(ledState==HIGH){
 		digitalWrite(13,LOW);
@@ -141,7 +141,7 @@ ISR(TIMER1_COMPA_vect){
 	}
 }*/
 
-/*ISR FOR PART B
+/*
 ISR(TIMER1_COMPA_vect){
 	if(ledState == HIGH){
 		digitalWrite(13,LOW);
